@@ -1,1 +1,2 @@
 # mpc-drilling
+Source code for the thesis. It was originally created in a JupyterNotebook, and there has been done an effort to port it into functions for readability. Beware of the variables that must be declared in the global scope.
