@@ -97,7 +97,7 @@ def I_m(P_h,n_u):
     Delta = kronD[:P_h*n_u,:P_h*n_u]
     return Delta
 
-def get_opt(i, P_h, At, Bt, Ct, Dt, r_y, r_u, gamma, phi, Q, R, x0, u0, ymax, eta, fac, uk_lb, uk_ub, duk_ub, duk_lb, w, W):
+def get_opt_drillparams(i, P_h, At, Bt, Ct, Dt, r_y, r_u, gamma, phi, Q, R, x0, u0, ymax, eta, fac, uk_lb, uk_ub, duk_ub, duk_lb, w, W):
     n_x = At.shape[0]
     n_u = Bt.shape[0]
     n_y = Ct.shape[0]
@@ -121,8 +121,8 @@ def get_opt(i, P_h, At, Bt, Ct, Dt, r_y, r_u, gamma, phi, Q, R, x0, u0, ymax, et
                 [A1, np.zeros((A1.shape[0], 2*I1.shape[1] + I2.shape[1]))],
                 [H, np.zeros((H.shape[0], 2*I1.shape[1])), -I2]])
     b_in = np.vstack((bh,by))
-    AugUlb = np.vstack((uk_lb, np.zeros((P_h*n_u,1)), np.zeros((P_h*n_u,1)), np.zeros((P_h,1))))
-    AugUub = np.vstack((uk_ub, np.ones((P_h*n_u,1))*100000, np.ones((P_h*n_u,1))*100000, np.ones((P_h,1))*100000))
+    lb = np.vstack((uk_lb, np.zeros((P_h*n_u,1)), np.zeros((P_h*n_u,1)), np.zeros((P_h,1))))
+    ub = np.vstack((uk_ub, np.ones((P_h*n_u,1))*100000, np.ones((P_h*n_u,1))*100000, np.ones((P_h,1))*100000))
 
     H_QP = np.bmat([
             [H_tilde, np.zeros((H_tilde.shape[0], W.shape[1]))],
@@ -131,4 +131,4 @@ def get_opt(i, P_h, At, Bt, Ct, Dt, r_y, r_u, gamma, phi, Q, R, x0, u0, ymax, et
 
     q_QP = np.vstack((f, w))
 
-    return qp(H_QP, q_QP, L=A_in, k=b_in, lb=AugUlb, ub=AugUub)
+    return qp(H_QP, q_QP, L=A_in, k=b_in, lb=lb, ub=ub)

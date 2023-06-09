@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
-
+import tens
 # The time series prediction utilities have been based on TensorFlow time-series forecasting utilities.  
 # Source: https://github.com/tensorflow/docs/blob/master/site/en/tutorials/structured_data/time_series.ipynb
 # Date Accessed: 10.02-23.
@@ -29,11 +29,10 @@ def load_heave():
     new_df = pd.DataFrame({'MRU_VALUE': heave_new})
     s = new_df
     print(s,t_new)
-    #write_to_csv("heave_3min_parsed.csv", t_new, s["MRU_VALUE"])
 
 def split_dataset(s, testsize, trainsize):
     column_indices = {name: i for i, name in enumerate(s.columns)}
-    #s = s.drop('TIME', axis=1)
+
     n = len(s)
     train_s = s[int(n*testsize):int(n*trainsize)]
     val_s = s[int(n*trainsize):int(n*1)]
@@ -45,12 +44,11 @@ class Window():
     def __init__(self, input_width, label_width, shift,
                train_df=train_s, val_df=val_s, test_df=test_s,
                label_columns=None):
-        # Store the raw data.
+
         self.train_df = train_df
         self.val_df = val_df
         self.test_df = test_df
 
-        # Work out the label column indices.
         self.label_columns = label_columns
         if label_columns is not None:
             self.label_columns_indices = {name: i for i, name in
@@ -58,7 +56,6 @@ class Window():
         self.column_indices = {name: i for i, name in
                                enumerate(train_df.columns)}
 
-        # Work out the window parameters.
         self.input_width = input_width
         self.label_width = label_width
         self.shift = shift
@@ -72,13 +69,6 @@ class Window():
         self.labels_slice = slice(self.label_start, None)
         self.label_indices = np.arange(self.total_window_size)[self.labels_slice]
 
-def __repr__(self):
-    return '\n'.join([
-        f'Total window size: {self.total_window_size}',
-        f'Input indices: {self.input_indices}',
-        f'Label indices: {self.label_indices}',
-        f'Label column name(s): {self.label_columns}'])
-
 def split_window(self, features):
     inputs = features[:, self.input_slice, :]
     labels = features[:, self.labels_slice, :]
@@ -87,8 +77,6 @@ def split_window(self, features):
             [labels[:, :, self.column_indices[name]] for name in self.label_columns],
             axis=-1)
 
-    # Slicing doesn't preserve static shape information, so set the shapes
-    # manually. This way the `tf.data.Datasets` are easier to inspect.
     inputs.set_shape([None, self.input_width, None])
     labels.set_shape([None, self.label_width, None])
 
@@ -162,7 +150,7 @@ def example(self):
         self._example = result
     return result
 
-def compile_and_fit(model, window, patience=2):
+def train_model(model, window, patience=2):
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                     patience=patience,
                                                     mode='min')
@@ -176,23 +164,18 @@ def compile_and_fit(model, window, patience=2):
                       callbacks=[early_stopping])
     return history
 
-def create_train_model():
+def construct_model():
     lstm_model = tf.keras.models.Sequential([
-        # Shape [batch, time, features] => [batch, lstm_units].
-        # Adding more `lstm_units` just overfits more quickly.
         tf.keras.layers.LSTM(50, return_sequences=False),
-        # Shape => [batch, out_steps*features].
         tf.keras.layers.Dense(OUT_STEPS*num_features,
                             kernel_initializer=tf.initializers.zeros()),
-        # Shape => [batch, out_steps, features].
         tf.keras.layers.Reshape([OUT_STEPS, num_features])
-
     ])
 
     #lstm_model.summary()
 
-    history = compile_and_fit(lstm_model, wide_window)
+    history = train_model(lstm_model, wide_window)
 
-    IPython.display.clear_output()
-    val_performance['LSTM'] = lstm_model.evaluate( wide_window.val)
-    performance['LSTM'] = lstm_model.evaluate( wide_window.test, verbose=0)
+    #IPython.display.clear_output()
+    #val_performance['LSTM'] = lstm_model.evaluate( wide_window.val)
+    #performance['LSTM'] = lstm_model.evaluate( wide_window.test, verbose=0)

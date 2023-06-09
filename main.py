@@ -59,9 +59,9 @@ def setup():
     uk_lb = np.zeros((P_h*n_u,1)) # Input lower bounds
     uk_ub = np.zeros((P_h*n_u,1)) # Input upper bounds
     uk_lb[::2] = 24 # Upper bound WOB [klbs]  
-    uk_lb[1::2] = 130 # Lower bound RPM [rpm]
+    uk_lb[1::2] = 100 # Lower bound RPM [rpm]
     uk_ub[::2] = 1 # Lower bound WOB [klbs]
-    uk_ub[1::2] = 180 # Upper bound RPM [rpm]
+    uk_ub[1::2] = 190 # Upper bound RPM [rpm]
     duk_lb = np.zeros((P_h*n_u,1)) # Upper bounds to rate of change in inputs
     duk_ub = np.zeros((P_h*n_u,1)) # Upper bounds to rate of change in inputs
     duk_lb[::2] = -3 # Upper bound rate of change WOB [klbs]
@@ -71,12 +71,12 @@ def setup():
     r = np.zeros((P_h*n_u,1)) # Input reference vector
     r[1::2] = 140 # RPM reference [rpm]
     
-    Q = np.eye(P_h*n_y)*1e4 # Weight matrix
+    Q = np.eye(P_h*n_y)*1e3 # Weight matrix
     r = np.array(
         [[5, 0],
          [0, 5]])
     R = block_diag(*([r] * P_h)) # Weight matrix
-    W = np.eye(P_h)*1e4 # Weight matrix quadratic slack
+    W = np.eye(P_h)*1e2 # Weight matrix quadratic slack
     w = np.ones((P_h,1)) # Weight matrix linear slack
 
     rop_sp = 30 # ROP setpoint [ft/hr]
@@ -136,7 +136,7 @@ def run_mpc(i, L, y, Nr, W, Flow, h, dt):
     U_1 = np.tile(u_prev,[Np, 1])
 
     # Solving the open loop optimization problem
-    U_opt = get_opt(i, P_h, At, Bt, Ct, Dt, r_y, r_u, gamma, phi, Q, R, x0, u0, ymax, eta, fac, uk_lb, uk_ub, duk_ub, duk_lb, w, W)
+    U_opt = get_opt_drillparams(i, P_h, At, Bt, Ct, Dt, r_y, r_u, gamma, phi, Q, R, x0, u0, ymax, eta, fac, uk_lb, uk_ub, duk_ub, duk_lb, w, W)
     
     W_opt.append(U_opt[0])
     Nr_opt.append(U_opt[1])
